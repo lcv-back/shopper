@@ -9,8 +9,8 @@
     width: 580px;
     height: auto;
     background: white;
-    margin: auto;
-    padding: 40px 60px;
+    margin: -80px auto;
+    padding: 30px 60px 30px 60px;
     box-sizing: border-box;
     border: 1px solid #5c5c5c;
 }
