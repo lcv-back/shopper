@@ -48,11 +48,16 @@ app.post("/upload", upload.single('product'), (req, res) => {
         });
     }
 
+    const imageUrl = `http://localhost:${port}/images/${req.file.filename}`;
+
+    console.log('Image uploaded successfully. Image URL:', imageUrl);
+
     res.json({
         success: 1,
-        image_url: `http://localhost:${port}/images/${req.file.filename}`
-    })
-})
+        image_url: imageUrl
+    });
+});
+
 
 // schema for creating products
 const Product = mongoose.model('product', {
@@ -89,6 +94,56 @@ const Product = mongoose.model('product', {
         default: true
     }
 })
+
+app.post('/addproduct', async(req, res) => {
+    let products = await Product.find({})
+    let id
+
+    if (products.length > 0) {
+        let last_product_array = products.slice(-1)
+        let last_product = last_product_array[0]
+        id = last_product.id + 1
+    } else {
+        id = 1
+    }
+
+    const product = new Product({
+        id: id,
+        name: req.body.name,
+        image: req.body.image,
+        category: req.body.category,
+        new_price: req.body.new_price,
+        old_price: req.body.old_price
+    })
+    console.log(product)
+    await product.save()
+    console.log('Product added successfully')
+    res.json({
+        success: true,
+        name: req.body.name
+    })
+})
+
+// Creating API for deleting products
+app.post('/removeproduct', async(req, res) => {
+    await Product.findOneAndDelete({
+        id: req.body.id
+    })
+
+    console.log("Product deleted successfully")
+    res.json({
+        success: true,
+        name: req.body.name
+    })
+})
+
+// Creating API for getting all products
+app.get('/allproducts', async(req, res) => {
+    let products = await Product.find({})
+    res.json(products)
+    console.log("All products fetched successfully")
+})
+
 
 app.listen(port, (error) => {
     if (!error) {

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Image</title>
+</head>
+
+<body>
+    <h1>Upload Image</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="product" id="product" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <h2>Image Preview:</h2>
+    <img id="imagePreview" src="" alt="Image Preview" style="max-width: 500px; display: none;">
+
+    <h2>Image URL:</h2>
+    <p id="imageUrl"></p>
+    <!-- Đoạn này sẽ hiển thị đường dẫn của hình ảnh -->
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('product', document.getElementById('product').files[0]);
+
+            try {
+                const response = await fetch('http://localhost:4000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success === 1) {
+                    const imageUrl = result.image_url;
+                    document.getElementById('imagePreview').src = imageUrl;
+                    document.getElementById('imagePreview').style.display = 'block';
+
+                    // Hiển thị đường dẫn hình ảnh
+                    document.getElementById('imageUrl').textContent = imageUrl;
+
+                    alert('Image uploaded successfully!');
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while uploading the image.');
+            }
+        });
+    </script>
+</body>
+
+</html>
