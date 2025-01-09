@@ -242,6 +242,21 @@ app.post('/login', async(req, res) => {
     }
 })
 
+// creating endpoint for new collection data
+app.get('/newcollections', async(req, res) => {
+    let products = await Product.find({})
+    let newcollection = products.slice(1).slice(-8)
+    console.log("New collection fetched")
+    res.send(newcollection)
+})
+
+// creating endpoint popular in women section
+app.get('/popularwomen', async(req, res) => {
+    let products = await Product.find({
+        category: 'women'
+    })
+})
+
 
 app.listen(port, (error) => {
     if (!error) {
