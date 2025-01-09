@@ -6,6 +6,7 @@ const multer = require('multer')
 const path = require('path')
 const cors = require('cors')
 const fs = require('fs')
+const jwt = require('jsonwebtoken')
 
 const dir = './upload/images';
 if (!fs.existsSync(dir)) {
@@ -142,6 +143,103 @@ app.get('/allproducts', async(req, res) => {
     let products = await Product.find({})
     res.json(products)
     console.log("All products fetched successfully")
+})
+
+// Schema creating for user model
+const Users = mongoose.model('Users', {
+    name: {
+        type: String
+    },
+    email: {
+        type: String,
+        unique: true
+    },
+    password: {
+        type: String
+    },
+    cartData: {
+        type: Object
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    }
+})
+
+// Creating endpoint for registing the user
+app.post('/signup', async(req, res) => {
+    let check = await Users.findOne({
+        email: req.body.email
+    })
+
+    if (check) {
+        return res.status(400).json({
+            success: false,
+            errors: "Email already exists"
+        })
+    }
+
+    let cart = {}
+
+    for (let i = 0; i < 300; i++) {
+        cart[i] = 0
+    }
+
+    const user = new Users({
+        name: req.body.username,
+        email: req.body.email,
+        password: req.body.password,
+        cartData: cart
+    })
+
+    await user.save()
+
+    const data = {
+        user: {
+            id: user._id
+        }
+    }
+
+    const token = jwt.sign(data, 'secret_ecom')
+    res.json({
+        success: true,
+        token: token
+    })
+})
+
+// creating endpoint for use login
+app.post('/login', async(req, res) => {
+    let user = await Users.findOne({
+        email: req.body.email
+    })
+
+    if (user) {
+        const passCompare = req.body.password === user.password
+
+        if (passCompare) {
+            const data = {
+                user: {
+                    id: user._id
+                }
+            }
+
+            const token = jwt.sign(data, 'secret_ecom')
+            res.json({
+                success: true,
+                token: token
+            })
+        } else {
+            res.json({
+                success: false,
+                errors: "Invalid password"
+            })
+        }
+    } else {
+        res.json({
+            success: false,
+            errors: "Email already in use or invalid"
+        })
+    }
 })
 
 
