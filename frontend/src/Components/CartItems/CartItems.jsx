@@ -18,7 +18,8 @@ const CartItems = () => {
             </div>
             <hr />
             {all_product.map((e) => {
-                if(cartItems[e.id] > 0) {
+                console.log("Product ID:", e.id, "Cart Quantity:", cartItems[e.id]);
+                if(cartItems[e.id] && cartItems[e.id] > 0) {
                     return (
                         <div>
                             <div className="cartitems-format cartitems-format-main">
