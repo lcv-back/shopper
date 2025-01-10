@@ -143,7 +143,6 @@ app.post('/removeproduct', async(req, res) => {
 app.get('/allproducts', async(req, res) => {
     let products = await Product.find({})
     res.json(products)
-    console.log("All products fetched successfully")
 })
 
 // Schema creating for user model
@@ -227,7 +226,8 @@ app.post('/login', async(req, res) => {
             const token = jwt.sign(data, 'secret_ecom')
             res.json({
                 success: true,
-                token: token
+                token: token,
+                cartData: user.cartData
             })
         } else {
             res.json({
@@ -247,7 +247,6 @@ app.post('/login', async(req, res) => {
 app.get('/newcollections', async(req, res) => {
     let products = await Product.find({})
     let newcollection = products.slice(1).slice(-8)
-    console.log("New collection fetched")
     res.send(newcollection)
 })
 
@@ -257,26 +256,24 @@ app.get('/popularwomen', async(req, res) => {
         category: 'women'
     })
     let popularwomen = products.slice(0, 4)
-    console.log("Popular in women fetched")
     res.send(popularwomen)
 })
 
 // creating middleware to fetch user
 const fetchUser = async(req, res, next) => {
-    const token = req.header('auth-token')
-    if (!token) return res.status(401).json({ errors: 'No token, authorization denied' })
-    else {
-        try {
-            const data = jwt.verify(token, 'secret_ecom')
-            req.user = data.user
-            next()
-        } catch (error) {
-            req.status(401).send({
-                errors: "Please authentication using invalid token"
-            })
-        }
+    const token = req.header('auth-token');
+    if (!token) {
+        return res.status(401).json({ errors: 'No token, authorization denied' });
     }
-}
+    try {
+        const data = jwt.verify(token, 'secret_ecom');
+        req.user = data.user;
+        next();
+    } catch (error) {
+        return res.status(401).json({ errors: "Invalid token" });
+    }
+};
+
 
 // creating endpoint for adding products in cartdata
 app.post('/addtocart', fetchUser, async(req, res) => {
@@ -291,8 +288,6 @@ app.post('/addtocart', fetchUser, async(req, res) => {
 
 // creating endpoints to remove product from cartdata
 app.post('/removefromcart', fetchUser, async(req, res) => {
-    console.log("removed", req.body.itemId);
-
     let userData = await Users.findOne({
         _id: req.user.id
     })
@@ -304,6 +299,21 @@ app.post('/removefromcart', fetchUser, async(req, res) => {
     await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData })
     res.send("Removed items from cart successfully")
 })
+
+// creating endpoint to get user's cart data
+app.post('/getcart', fetchUser, async(req, res) => {
+    try {
+        let userData = await Users.findOne({ _id: req.user.id });
+        if (!userData) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(userData.cartData)
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
 
 
 app.listen(port, (error) => {
