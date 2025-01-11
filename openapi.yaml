@@ -1,0 +1,188 @@
+openapi: 3.0.3
+info:
+  title: Shopper API
+  version: 1.0.0
+  description: >
+    Reference design documentation of Shopper
+  termsOfService: https://shopper.net/terms
+  contact:
+    email: vikimmich6@gmail.com
+    name: Vi Le Cong Developer
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: http://localhost:4000
+    description: for testing on local computer
+tags:
+  - name: API
+      
+paths:
+  /signup:
+    post:
+      tags: 
+        - API
+      summary: User Sign Up
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "checking user"
+                password:
+                  type: string
+                  example: "12345678"
+                email:
+                  type: string
+                  example: "user.vilecong@gmail.com"
+              required:
+                - username
+                - password
+                - email
+      responses:
+        '200':
+          description: User successfully signed up
+        '400':
+          description: Bad request
+
+  /login:
+    post:
+      tags: 
+        - API
+      summary: User Log In
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "user.vilecong@gmail.com"
+                password:
+                  type: string
+                  example: "12345678"
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: User successfully logged in
+        '401':
+          description: Unauthorized
+
+  /allproducts:
+    get:
+      tags: 
+        - API
+      summary: Get All Products
+      responses:
+        '200':
+          description: List of all products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /addproduct:
+    post:
+      tags: 
+        - API
+      summary: Add a Product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "product123"
+                old_price:
+                  type: number
+                  example: 10
+                new_price:
+                  type: number
+                  example: 8
+                category:
+                  type: string
+                  example: "kid"
+                image:
+                  type: string
+                  example: "http://localhost:4000/images/product_1735884323688.png"
+              required:
+                - name
+                - old_price
+                - new_price
+                - category
+                - image
+      responses:
+        '201':
+          description: Product added successfully
+        '400':
+          description: Bad request
+
+  /removeproduct:
+    post:
+      tags: 
+        - API
+      summary: Remove a Product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 23
+                name:
+                  type: string
+                  example: "product123"
+              required:
+                - id
+                - name
+      responses:
+        '200':
+          description: Product removed successfully
+        '404':
+          description: Product not found
+
+  /newcollections:
+    get:
+      tags: 
+        - API
+      summary: Get Products on New Collection
+      responses:
+        '200':
+          description: List of products in the new collection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /popularwomen:
+    get:
+      tags: 
+        - API
+      summary: Get Popular Women Products
+      responses:
+        '200':
+          description: List of popular women products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
