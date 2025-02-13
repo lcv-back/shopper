@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import './ListProduct.css'
 import cross_icon from '../../assets/cross_icon.png'
 

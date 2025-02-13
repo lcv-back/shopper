@@ -15,10 +15,10 @@ if (!fs.existsSync(dir)) {
 }
 
 app.use(express.json())
-app.use(cors())
+app.use(cors()) 
 
 // database connection with mongodb
-mongoose.connect(`mongodb+srv://lecongvi18052002:lecongvi1805@shopboavimap.imum6.mongodb.net/`)
+mongoose.connect(`mongodb+srv://haoda:PsLp8YoJq35rS5bN@anhhao.uqdvc.mongodb.net/`)
     .then(() => console.log("MongoDB connected successfully"))
     .catch((err) => console.log("MongoDB connection error:", err))
 
@@ -313,7 +313,97 @@ app.post('/getcart', fetchUser, async(req, res) => {
     }
 });
 
+// order schema
+const Order = mongoose.model('order', {
+    userId: {type: String,required: true},
+    items: {type: Object},
+    totalPrice: {type: String, required: true},
+    payment: {
+        type: {type: String, required: true},
+        name: {type: String, required: true},
+        number: {type: String, required: true},
+        expired: {type: String, required: true},
+        cvc: {type: String, required: true},
+        status: {type: String, default: "paid"}
+    },
+    status: {type: String, default: "pending"},
+    shipAddress: {
+        address: {type: String, required: true},
+        city: {type: String, required: true},
+        country: {type: String, required: true}
+    },
+    createAt: {type: Date, default: Date.now}
+})
 
+// totalPrice
+const totalPrice = async (cartData) => {
+    let total = 0;
+    for(const [key, quantity] of Object.entries(cartData)) {
+        if(quantity > 0) {
+            let product = await Product.findOne({id: key})
+            total += product.new_price * quantity
+        }
+    }
+
+    let tax = 0.05 * total;
+    let shippingPrice = 10;
+
+    return total + tax + shippingPrice;
+} 
+
+//filted cart 
+const filterdCartItems = (cartData) => {
+    return Object.entries(cartData)
+            .filter(([_, quantity]) => quantity > 0)
+            .reduce((filteredCart, [key, quantity]) => {
+                filteredCart[key] = quantity;
+                return filteredCart;
+            }, {});
+}
+
+// creating api checkout
+app.post('/docheckout', fetchUser, async(req, res) => {
+    let userData = await Users.findOne({ _id: req.user.id });
+    let total = await totalPrice(userData.cartData);
+    let newOrder = new Order({
+        userId: req.user.id,
+        items: filterdCartItems(userData.cartData),
+        totalPrice: total,
+        payment: {
+            type: req.body.payment.type,
+            name: req.body.payment.name,
+            number: req.body.payment.number,
+            expired: req.body.payment.expired,
+            cvc: req.body.payment.cvc,
+            status: req.body.payment.status
+        },
+        shipAddress: {
+            address: req.body.shipAddress.address,
+            city: req.body.shipAddress.city,
+            country: req.body.shipAddress.country
+        }
+    })
+
+    let cart = userData.cartData;
+    Object.keys(cart).forEach(key => {
+        cart[key] = 0;
+    });
+    await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: cart });
+
+    
+    await newOrder.save();
+
+    res.json({
+        success: true,
+        data: newOrder
+    })
+})
+
+//api get all order
+app.get('/getorders', async(req, res) => {
+    let orders = await Order.find({})
+    res.json(orders)
+})
 
 
 app.listen(port, (error) => {
