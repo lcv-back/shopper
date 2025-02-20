@@ -9,14 +9,14 @@ export const CheckoutProvider = ({ children }) => {
         country: ''
     });
     const [paymentData, setPaymentData] = useState({
-        type: '',
-        name: '',
-        number: '',
-        expired: '',
-        cvc: ''
+        cardName: '',
+        cardNumber: '',
+        cardExpired: '',
+        cardCvc: ''
     });
+    const [paymentMethod, setPaymentMethod] = useState("");
     return (
-        <CheckoutContext.Provider value = {{shippingData, setShippingData, paymentData, setPaymentData}}>
+        <CheckoutContext.Provider value = {{shippingData, setShippingData, paymentData, setPaymentData, paymentMethod, setPaymentMethod}}>
             {children}
         </CheckoutContext.Provider>
     )

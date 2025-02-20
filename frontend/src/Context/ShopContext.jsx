@@ -14,31 +14,40 @@ const ShopContextProvider = (props) => {
 
     const [all_product, setAll_Product] = useState([])
 
+    const [discounts, setDiscounts] = useState([]);
+
     const [cartItems, setCartItems] = useState(getDefaultCart());
 
     useEffect(() => {
-        fetch('http://localhost:4000/allproducts')
-        .then((response) => response.json())
-        .then((data) => {
-            setAll_Product(data)
-        })
+        const fetchData = async () => {
+            try {
+                const [productsRes, discountsRes] = await Promise.all([
+                    fetch('http://localhost:4000/allproducts').then(res => res.json()),
+                    fetch('http://localhost:4000/discounts').then(res => res.json()),
+                ]);
+                setAll_Product(productsRes);
+                setDiscounts(discountsRes.data);
+                setCartItems(getDefaultCart(productsRes));
 
-        if(localStorage.getItem('auth-token')){
-            fetch('http://localhost:4000/getcart', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
-                    Accept: 'application/form-data',
-                },
-                body: ""
-            })
-           .then((response) => response.json())
-           .then((data) => {
-                setCartItems(data)
-            })
-        }
-    }, [])
+                if (localStorage.getItem('auth-token')) {
+                    const cartRes = await fetch('http://localhost:4000/getcart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'auth-token': localStorage.getItem('auth-token'),
+                        },
+                        body: "",
+                    }).then(res => res.json());
+
+                    setCartItems(cartRes);
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải dữ liệu:", error);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     const addToCart = (itemId) => {
         setCartItems((prev) => ({
@@ -102,8 +111,8 @@ const ShopContextProvider = (props) => {
         }
         return totalItem
     }
-
-    const contextValue = {getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart}
+    const contextValue = 
+        {getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart, discounts};
 
     return (
         <ShopContext.Provider value={contextValue}>

@@ -315,23 +315,13 @@ app.post('/getcart', fetchUser, async(req, res) => {
 
 // order schema
 const Order = mongoose.model('order', {
-    userId: {type: String,required: true},
-    items: {type: Object},
-    totalPrice: {type: String, required: true},
-    payment: {
-        type: {type: String, required: true},
-        name: {type: String, required: true},
-        number: {type: String, required: true},
-        expired: {type: String, required: true},
-        cvc: {type: String, required: true},
-        status: {type: String, default: "paid"}
-    },
+    userId: String,
+    items: Object,
+    totalPrice: String,
+    paymentMethod: String,
+    cardInfo: {type: Object, default: undefined},
     status: {type: String, default: "pending"},
-    shipAddress: {
-        address: {type: String, required: true},
-        city: {type: String, required: true},
-        country: {type: String, required: true}
-    },
+    shipAddress: {type: Object, default: undefined},
     createAt: {type: Date, default: Date.now}
 })
 
@@ -362,21 +352,19 @@ const filterdCartItems = (cartData) => {
 }
 
 // creating api checkout
-app.post('/docheckout', fetchUser, async(req, res) => {
+app.post('/orders', fetchUser, async(req, res) => {
     let userData = await Users.findOne({ _id: req.user.id });
-    let total = await totalPrice(userData.cartData);
     let newOrder = new Order({
         userId: req.user.id,
         items: filterdCartItems(userData.cartData),
-        totalPrice: total,
-        payment: {
-            type: req.body.payment.type,
-            name: req.body.payment.name,
-            number: req.body.payment.number,
-            expired: req.body.payment.expired,
-            cvc: req.body.payment.cvc,
-            status: req.body.payment.status
-        },
+        totalPrice: req.body.totalPrice,
+        paymentMethod: req.body.paymentMethod,
+        cardInfo: req.body.paymentMethod == "card" ? {
+            cardNumber: req.body.cardInfo.cardNumber,
+            cardName: req.body.cardInfo.cardName,
+            cardExpired: req.body.cardInfo.cardExpired,
+            cardCvc: req.body.cardInfo.cardCvc
+        } : undefined,
         shipAddress: {
             address: req.body.shipAddress.address,
             city: req.body.shipAddress.city,
@@ -400,11 +388,63 @@ app.post('/docheckout', fetchUser, async(req, res) => {
 })
 
 //api get all order
-app.get('/getorders', async(req, res) => {
+app.get('/orders', async(req, res) => {
     let orders = await Order.find({})
     res.json(orders)
 })
 
+//schema for discount
+const Discount = mongoose.model('discount', {
+    code: {type: String, unique: true},
+    scope: String,
+    type: String,
+    value: String,
+    expired: Date
+})
+
+//api add discount
+app.post('/discounts', async(req, res) => {
+    let discount = new Discount({
+        code: req.body.code,
+        scope: req.body.scope,
+        type: req.body.type,
+        value: req.body.value,
+        expired: new Date(Date.now() + req.body.day * 24 * 60 * 60 * 1000)
+    })
+
+    await discount.save();
+
+    res.json({
+        success: true,
+        data: discount
+    })
+})
+
+//api get all discount
+app.get('/discounts', async(req, res) => {
+    let discounts = await Discount.find();
+    res.json({
+        success: true,
+        data: discounts
+    });
+})
+
+//api get discount by code
+app.get('/discounts/:code', async(req, res) => {
+    let discount = await Discount.findOne({code: req.params.code});
+    res.json({
+        success: true,
+        data: discount
+    })
+})
+
+//api delete discount
+app.delete('/discounts', async(req, res) => {
+    let discount = await Discount.findByIdAndDelete(req.body.discountId);
+    res.json({
+        success: true
+    })
+})
 
 app.listen(port, (error) => {
     if (!error) {

@@ -5,7 +5,7 @@ const Order = () => {
 
     const fetchInfo = async () => {
         try {
-            const response = await fetch('http://localhost:4000/getorders');
+            const response = await fetch('http://localhost:4000/orders');
             const data = await response.json();
             setOrders(data);
         } catch (error) {

@@ -81,8 +81,16 @@
                 <h2 class="text-2xl font-bold mb-4">Payment Method</h2>
                 <form class="space-y-4">
                     <div>
-                        <label class="block text-gray-600 mb-2" for="card-name">Name on Card</label>
-                        <input class="w-full border rounded px-4 py-2" id="card-name" type="text"/>
+                        <label class="block text-gray-600 mb-2" for="payment-method">Payment Method</label>
+                        <select class="w-full border rounded px-4 py-2" id="payment-method" name="paymentMethod" required>
+                            <option value="" disabled selected>Select payment method</option>
+                            <option value="cod">Cash on Delivery (COD)</option>
+                            <option value="card">Credit/Debit Card</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-2" for="card-holder">Card Holder</label>
+                        <input class="w-full border rounded px-4 py-2" id="card-holder" type="text"/>
                     </div>
                     <div>
                         <label class="block text-gray-600 mb-2" for="card-number">Card Number</label>
