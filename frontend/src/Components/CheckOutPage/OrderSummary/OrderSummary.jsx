@@ -47,7 +47,8 @@ const OrderSummary = () => {
             const token = localStorage.getItem("auth-token");
             if(!token) {
                 setNotification({message: "Please log in to order!", status: false, show: true});
-                setTimeout(setNotification({show: false}, 3000));
+                setTimeout(() => setNotification({show: false}, 3000));
+                return;
             }
 
             const response = await fetch("http://localhost:4000/orders", {
@@ -56,13 +57,32 @@ const OrderSummary = () => {
                     "Content-Type": "application/json",
                     "auth-token": token
                 },
-                body: JSON.stringify({...formData, totalPrice: total.toFixed(2)})
+                body: JSON.stringify({...formData, totalPrice: total})
             });
             const data = await response.json();
 
             if (data.success) {
                 setNotification({message: "Payment successful !", status: true, show: true});
-                setTimeout(()=> {window.location.replace("/")}, 2000);
+                const emailFormData = {
+                    orderId: data._id,
+                    totalPrice: total.toFixed(2),
+                    address: formData.shipAddress.address + ", " + formData.shipAddress.city
+                }
+                const emailResponse = await fetch('http://localhost:4000/sendmail', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "auth-token": token
+                    },
+                    body: JSON.stringify(emailFormData),
+                })
+                const emailData = await emailResponse.json();
+                if(emailData.success) {
+                    setNotification({show: false});
+                    setTimeout(()=> {window.location.replace("/")}, 2000);
+                } else {
+                    setTimeout(() => setNotification({message: "Send email failed !", status: false, show: true}), 2000);
+                }
             } else {
                 setNotification({message: "Payment failed !", status: false, show: true});
                 setTimeout(() => setNotification({show: false}), 2000);
