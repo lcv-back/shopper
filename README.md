@@ -71,6 +71,16 @@ npm start or node index.js
 Username: user.vilecong@gmail.com
 Password: 12345678
 ```
+## Using sending email
+```sh
+#Step 1: Go to backend folder
+cd backend
+
+# Step 2: Create .env file. In this file include your google app password
+## (if you don't have, follow this link https://myaccount.google.com/apppasswords)
+GMAIL_USER=[your_email]
+GMAIL_PASS=[your_app_password]
+```
 
 ### Some references if you want to read more information
 
