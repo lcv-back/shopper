@@ -77,7 +77,7 @@ const LoginSigup = () => {
                 
                 <div className="loginsignup-agree">
                     <input type="checkbox" name="" id=""/>
-                    <p>By continuing, i agree to the terms of use & privacy policy.</p>
+                    <p>By continue, i agree to the terms of use & privacy policy.</p>
                 </div>
             </div>
         </div>

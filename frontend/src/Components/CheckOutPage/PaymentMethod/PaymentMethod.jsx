@@ -7,6 +7,7 @@ const PaymentMethod = () => {
         if(name === "paymentMethod") setPaymentMethod(value);
         setPaymentData((prev) => ({ ...prev, [name]: value }));
     };
+    const userPay= JSON.parse(localStorage.getItem("user-payment") || []);
     return (
         <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Payment Method</h2>
@@ -23,22 +24,24 @@ const PaymentMethod = () => {
                 {(paymentMethod === "card") && (
                     <div>
                         <div>
-                            <label className="block text-gray-600 mb-2" htmlFor="card-name">Name on Card</label>
+                            <label className="block text-gray-600 mb-2" htmlFor="card-holder">Name on Card</label>
                             <input
-                                name="cardName"
+                                name="cardHolder"
                                 className="w-full border rounded px-4 py-2"
+                                value={userPay?.[0]?.holder ||""}
                                 onChange={handleChange}
-                                id="card-name"
+                                id="card-holder"
                                 type="text"
                             />
                         </div>
                         <div>
-                            <label className="block text-gray-600 mb-2" htmlFor="card-number">Card Number</label>
+                            <label className="block text-gray-600 mb-2" htmlFor="card-type">Card Type</label>
                             <input
-                                name="cardNumber"
+                                name="cardType"
                                 className="w-full border rounded px-4 py-2"
+                                value={userPay?.[0]?.type ||""}
                                 onChange={handleChange}
-                                id="card-number"
+                                id="card-type"
                                 type="text"
                             />
                         </div>
@@ -48,18 +51,9 @@ const PaymentMethod = () => {
                                 <input
                                     name="cardExpired"
                                     className="w-full border rounded px-4 py-2"
+                                    value= {userPay?.[0]?.detail?.expiryDate ||""}
                                     onChange={handleChange}
                                     id="card-expiry"
-                                    type="text"
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-gray-600 mb-2" htmlFor="card-cvc">CVC</label>
-                                <input
-                                    name="cardCvc"
-                                    className="w-full border rounded px-4 py-2"
-                                    onChange={handleChange}
-                                    id="card-cvc"
                                     type="text"
                                 />
                             </div>

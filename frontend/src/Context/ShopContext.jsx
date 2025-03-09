@@ -38,7 +38,6 @@ const ShopContextProvider = (props) => {
                         },
                         body: "",
                     }).then(res => res.json());
-
                     setCartItems(cartRes);
                 }
             } catch (error) {
@@ -112,7 +111,8 @@ const ShopContextProvider = (props) => {
         return totalItem
     }
     const contextValue = 
-        {getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, removeFromCart, discounts};
+        {getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, 
+            removeFromCart, discounts};
 
     return (
         <ShopContext.Provider value={contextValue}>

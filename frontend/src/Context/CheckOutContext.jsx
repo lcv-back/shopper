@@ -10,7 +10,7 @@ export const CheckoutProvider = ({ children }) => {
     });
     const [paymentData, setPaymentData] = useState({
         cardName: '',
-        cardNumber: '',
+        cardHolder: '',
         cardExpired: '',
         cardCvc: ''
     });

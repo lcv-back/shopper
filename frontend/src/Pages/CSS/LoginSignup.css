@@ -12,7 +12,7 @@
 .loginsignup-container {
     width: 100%;
     max-width: 500px;
-    height: 400px;
+    height: 100%;
     background-color: white;
     padding: 30px;
     border-radius: 8px;
@@ -67,7 +67,7 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 15px;
+    margin-top: 50px;
     font-size: 14px;
 }
 
@@ -96,7 +96,7 @@ button {
     }
     .loginsignup-container {
         max-width: 500px;
-        width: 100%;
+        width: 90%;
         margin: 20px auto;
         /* Reduce top margin to bring the form closer to navbar */
         padding: 40px;
@@ -124,7 +124,7 @@ button {
 
 @media (max-width: 1024px) {
     .loginsignup-container {
-        max-width: 90%;
+        max-width: 80%;
         /* Adjust form width for smaller screens */
         margin-top: 0;
         /* Remove margin-top to reduce space between navbar and form */
@@ -140,7 +140,8 @@ button {
 
 @media (max-width: 800px) {
     .loginsignup-container {
-        max-width: 90%;
+        max-width: 80%;
+        height: 85%;
         /* Adjust form width for smaller screens */
         margin-top: 0;
         /* Remove margin-top to reduce space between navbar and form */
@@ -166,6 +167,7 @@ button {
 @media (max-width: 500px) {
     .loginsignup-container {
         max-width: 90%;
+        height: 85%;
         /* Make form width smaller to fit smaller screens */
         padding: 15px;
         /* Reduce padding for smaller screens */

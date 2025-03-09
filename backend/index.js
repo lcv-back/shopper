@@ -531,6 +531,227 @@ app.post('/sendmail', fetchUser, async(req, res) => {
     });
 })
 
+app.get('/myInfo', fetchUser, async(req, res) => {
+    const user = await Users.findById({_id: req.user.id})
+    try {
+        if(!user) res.json({
+            status: 404,
+            message: "User not found."
+        });
+
+        const userObject = user.toObject();
+        delete userObject.cartData;
+        res.json({
+            status: 200,
+            data: userObject
+        });
+    } catch (error) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error."
+        });
+    }
+    
+})
+
+//payment schema
+const PaymentMethod = mongoose.model('payment', {
+    userId: {type: String},
+    holder: String,
+    type: String,
+    detail: {
+        expiryDate: String,
+        cvv: String
+    }
+})
+
+//address schema
+const Address = mongoose.model('address', {
+    userId: {type: String},
+    street: String,
+    city: String,
+    country: String
+})
+
+//add address and payment
+app.post('/address', fetchUser, async (req, res) => {
+    const newAddress = new Address({
+        userId: req.user.id,
+        street: req.body.street,
+        city: req.body.city,
+        country: req.body.country
+    });
+
+    await newAddress.save();
+
+    res.json({
+        status: 200,
+        data: newAddress
+    });
+})
+
+app.post('/payment', fetchUser, async (req, res) => {
+    const newPayment = new PaymentMethod({
+        userId: req.user.id,
+        holder: req.body.holder,
+        type: req.body.type,
+        detail: req.body.detail
+    });
+
+    await newPayment.save();
+
+    res.json({
+        status: 200,
+        data: newPayment
+    });
+})
+
+//get all address and payment
+app.get('/address', fetchUser, async (req, res) => {
+    try {
+        const userId= req.user.id;
+        const addresses = await Address.find({userId: userId});
+        if(addresses.length == 0){
+            res.json({
+                status: 404,
+                message: "No address available."
+            });
+        } else {
+            res.json({
+                status: 200,
+                data: addresses
+            })
+        }
+    } catch (error) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error."
+        });
+    }
+});
+
+app.get('/payments', fetchUser, async (req, res) => {
+    try{
+        const payments = await PaymentMethod.find({userId: req.user.id});
+        if(payments.length == 0) {
+            res.json({
+                status: 404,
+                message: "No payment available."
+            });
+        } else {
+            res.json({
+                status: 200,
+                data: payments
+            });
+        }
+    } catch (err) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error."
+        });
+    }
+})
+
+//update address and payment
+app.put('/address/:addressId', fetchUser, async (req, res) => {
+    try {
+        const address = await Address.findOneAndUpdate(
+            {_id: req.params.addressId, userId: req.user.id}, 
+            {$set: req.body}, 
+            {new: true, upsert: false});
+        if(!address){
+            res.json({
+                status: 404,
+                message: "No address available."
+            });
+        } else {
+            res.json({
+                status: 200,
+                data: address
+            })
+        }
+    } catch (error) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error."
+        });
+    }
+});
+
+app.put('/payments/:paymentId', async (req, res) => {
+    try {
+        const payment = await PaymentMethod.findOneAndUpdate(
+            {_id: req.params.paymentId}, 
+            {$set: req.body}, 
+            {new: true, upsert: false});
+        if(!payment){
+            res.json({
+                status: 404,
+                message: "No payment available."
+            });
+        } else {
+            res.json({
+                status: 200,
+                data: payment
+            })
+        }
+    } catch (error) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error."
+        });
+    }
+});
+
+//delete address and payment
+app.delete('/address/:addressId', async (req, res) => {
+    try {
+        const address = await Address.findOneAndDelete(
+            {_id: req.params.addressId});
+
+        if(!address){
+            res.json({
+                status: 404,
+                message: "No address available."
+            });
+        } else {
+            res.json({
+                status: 200,
+                data: address
+            })
+        }
+    } catch (error) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error."
+        });
+    }
+});
+
+app.delete('/payment/:paymentId', fetchUser, async (req, res) => {
+    try {
+        const payment = await PaymentMethod.findOneAndDelete(
+            {_id: req.params.paymentId, userId: req.user.id});
+            
+        if(!payment){
+            res.json({
+                status: 404,
+                message: "No payment available."
+            });
+        } else {
+            res.json({
+                status: 200,
+                data: payment
+            })
+        }
+    } catch (error) {
+        res.json({
+            status: 500,
+            message: "Internal Server Error."
+        });
+    }
+});
+
 app.listen(port, (error) => {
     if (!error) {
         console.log(`Server is running on port ${port}`)

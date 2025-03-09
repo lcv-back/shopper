@@ -2,6 +2,7 @@ import { useCheckout } from "../../../Context/CheckOutContext";
 
 const ShippingDetails = () => {
     const { setShippingData } = useCheckout();
+    const userAddress = JSON.parse(localStorage.getItem("user-addr") || []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -17,6 +18,7 @@ const ShippingDetails = () => {
                     <input
                         name="address"
                         className="w-full border rounded px-4 py-2"
+                        value= {userAddress?.[0]?.street || ""}
                         onChange={handleChange}
                         id="shipping-address"
                         type="text"
@@ -28,6 +30,7 @@ const ShippingDetails = () => {
                         <input
                             name="city"
                             className="w-full border rounded px-4 py-2"
+                            value= {userAddress?.[0]?.city || ""}
                             onChange={handleChange}
                             id="shipping-city"
                             type="text"
@@ -38,6 +41,7 @@ const ShippingDetails = () => {
                         <input
                             name="country"
                             className="w-full border rounded px-4 py-2"
+                            value= {userAddress?.[0]?.country || ""}
                             onChange={handleChange}
                             id="shipping-country"
                             type="text"

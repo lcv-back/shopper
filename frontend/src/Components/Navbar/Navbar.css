@@ -1,7 +1,7 @@
 .navbar {
     display: flex;
     justify-content: space-around;
-    padding: 16px;
+    padding: 15px 0px;
     box-shadow: 0 1px 3px -2px black;
     align-items: center;
 }
@@ -48,7 +48,7 @@
 .nav-login-cart {
     display: flex;
     align-items: center;
-    gap: 45px;
+    gap: 25px;
 }
 
 .nav-login-cart button {
@@ -80,12 +80,25 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: -45px;
-    margin-left: -50px;
+    margin-top: -20px;
+    margin-left: -34px;
     border-radius: 11px;
     font-size: 14px;
     background: red;
     color: white;
+    z-index: 1000;
+}
+
+.nav-info {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-info img {
+    width: 30px;
 }
 
 @media(max-width:1280px) {
@@ -113,6 +126,10 @@
     .nav-login-cart img {
         width: 30px;
         height: 30px;
+    }
+
+    .nav-info img{
+        width: 20px;
     }
     .nav-cart-count {
         margin-left: -35px;
