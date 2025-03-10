@@ -162,6 +162,9 @@ const Users = mongoose.model('Users', {
     cartData: {
         type: Object
     },
+    selectAddress: {
+        type: Object
+    },
     date: {
         type: Date,
         default: Date.now
@@ -261,6 +264,7 @@ app.get('/popularwomen', async(req, res) => {
     res.send(popularwomen)
 })
 
+
 // creating middleware to fetch user
 const fetchUser = async(req, res, next) => {
     const token = req.header('auth-token');
@@ -276,6 +280,20 @@ const fetchUser = async(req, res, next) => {
     }
 };
 
+//api update user address
+app.put('/users/address', fetchUser, async(req, res) => {
+    const addressUpdate = new Address({
+        street: req.body.street,
+        city: req.body.city,
+        country: req.body.country
+    })
+    const userUpdate= await Users.findOneAndUpdate({_id: req.user.id}, {selectAddress: addressUpdate})
+
+    res.json({
+        status: 200,
+        data: userUpdate
+    })
+})
 
 // creating endpoint for adding products in cartdata
 app.post('/addtocart', fetchUser, async(req, res) => {
@@ -362,13 +380,12 @@ app.post('/orders', fetchUser, async(req, res) => {
         totalPrice: req.body.totalPrice,
         paymentMethod: req.body.paymentMethod,
         cardInfo: req.body.paymentMethod == "card" ? {
-            cardNumber: req.body.cardInfo.cardNumber,
             cardName: req.body.cardInfo.cardName,
-            cardExpired: req.body.cardInfo.cardExpired,
-            cardCvc: req.body.cardInfo.cardCvc
+            cardType: req.body.cardInfo.cardType,
+            cardExpired: req.body.cardInfo.cardExpired
         } : undefined,
         shipAddress: {
-            address: req.body.shipAddress.address,
+            street: req.body.shipAddress.street,
             city: req.body.shipAddress.city,
             country: req.body.shipAddress.country
         }
@@ -393,6 +410,12 @@ app.post('/orders', fetchUser, async(req, res) => {
 app.get('/orders', async(req, res) => {
     let orders = await Order.find({})
     res.json(orders)
+})
+
+//api update order
+app.put('/orders/:orderId', async(req, res) => {
+    const order= await Order.findByIdAndUpdate(req.params.orderId, {$set: req.body}, {new: true});
+    res.json(order);
 })
 
 //schema for discount
@@ -579,7 +602,8 @@ app.post('/address', fetchUser, async (req, res) => {
         userId: req.user.id,
         street: req.body.street,
         city: req.body.city,
-        country: req.body.country
+        country: req.body.country,
+        isSelected: req.body.isSelected
     });
 
     await newAddress.save();
@@ -632,7 +656,7 @@ app.get('/address', fetchUser, async (req, res) => {
 
 app.get('/payments', fetchUser, async (req, res) => {
     try{
-        const payments = await PaymentMethod.find({userId: req.user.id});
+        const payments = await PaymentMethod.findOne({userId: req.user.id});
         if(payments.length == 0) {
             res.json({
                 status: 404,

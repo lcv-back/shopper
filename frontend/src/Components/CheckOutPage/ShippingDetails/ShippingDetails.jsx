@@ -1,13 +1,8 @@
-import { useCheckout } from "../../../Context/CheckOutContext";
+import { useUser } from "../../../Context/UserContext";
 
 const ShippingDetails = () => {
-    const { setShippingData } = useCheckout();
-    const userAddress = JSON.parse(localStorage.getItem("user-addr") || []);
+    const {userInfo} = useUser();
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setShippingData((prev) => ({...prev, [name]: value}));
-    };
 
     return (
         <div className="mb-8">
@@ -18,10 +13,10 @@ const ShippingDetails = () => {
                     <input
                         name="address"
                         className="w-full border rounded px-4 py-2"
-                        value= {userAddress?.[0]?.street || ""}
-                        onChange={handleChange}
+                        value= {userInfo.selectAddress?.street||""}
                         id="shipping-address"
                         type="text"
+                        readOnly
                     />
                 </div>
                 <div className="flex flex-col md:flex-row md:space-x-4">
@@ -30,10 +25,10 @@ const ShippingDetails = () => {
                         <input
                             name="city"
                             className="w-full border rounded px-4 py-2"
-                            value= {userAddress?.[0]?.city || ""}
-                            onChange={handleChange}
+                            value= {userInfo.selectAddress?.city||""}
                             id="shipping-city"
                             type="text"
+                            readOnly
                         />
                     </div>
                     <div className="flex-1">
@@ -41,10 +36,10 @@ const ShippingDetails = () => {
                         <input
                             name="country"
                             className="w-full border rounded px-4 py-2"
-                            value= {userAddress?.[0]?.country || ""}
-                            onChange={handleChange}
+                            value= {userInfo.selectAddress?.country||""}
                             id="shipping-country"
                             type="text"
+                            readOnly
                         />
                     </div>
                 </div>

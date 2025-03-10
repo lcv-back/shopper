@@ -1,51 +1,36 @@
 import { useState} from "react";
 import { useUser } from "../../Context/UserContext";
 import user_icon from "../Assets/user-regular.svg"; 
+import Notification from "../Notification/Notification";
 
 const UserInfo = () => {
-    const  {userInfo, userAddress, setUserAddress, userPayment, setUserPayment} = useUser();
+    const  {userInfo, userAddrList, userPayMethod} = useUser();
     // State chứa danh sách địa chỉ & thông tin thanh toán
     const [formData, setFormData] = useState({
-        name: userInfo?.name||JSON.parse(localStorage.getItem("user-info") || "{}").name,
-        email: userInfo?.email||JSON.parse(localStorage.getItem("user-info") || "{}").email,
-        addresses: userAddress?.length > 0 
-                    ? userAddress 
-                    : JSON.parse(localStorage.getItem("user-addr") || "[]"),
-        type: userPayment?.length > 0 
-                ? userPayment[0].type 
-                : JSON.parse(localStorage.getItem("user-payment") || "{}")[0]?.type || "",
-        holder: userPayment?.length > 0 
-                ? userPayment[0].holder 
-                : JSON.parse(localStorage.getItem("user-payment") || "{}")[0]?.holder || "",
-        expiryDate: userPayment?.length > 0 
-                    ? userPayment[0].detail?.expiryDate 
-                    : JSON.parse(localStorage.getItem("user-payment") || "{}")[0].detail?.expiryDate || "",
+        name: userInfo?.name||"",
+        email: userInfo?.email||"",
+        addresses: userAddrList?.length > 0 ? userAddrList : [],
+        type: userPayMethod?.type || "",
+        holder: userPayMethod?.holder || "",
+        expiryDate: userPayMethod?.detail?.expiryDate || "",
     });
 
-    const [selectedAddress, setSelectedAddress] = useState(userAddress?.[0] || JSON.parse(localStorage.getItem("user-addr") || "[]")[0]);
+    const [selectedAddress, setSelectedAddress] = useState(userInfo?.selecteAddress||JSON.parse(localStorage.getItem("selected-addr")));
     const [isModalOpen, setIsModalOpen] = useState(false); // Trạng thái mở/đóng modal
+    const [notification, setNotification] = useState({message: "", status: false, show: false});
 
     // Xử lý chọn địa chỉ từ modal
     const handleAddressChange = async (type, addr) => {
         const addrId = addr._id;
         if(type === "select"){
+            localStorage.setItem("selected-addr", JSON.stringify(addr));
             setSelectedAddress(addr);
         } else if(type === "delete") {
             if(addrId===selectedAddress._id) return;
-            const deleteAddr = await fetch(`http://localhost:4000/address/${addrId}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                }
-            });
-            if(deleteAddr.ok) {
-                setFormData(prev => ({
-                    ...prev,
-                    addresses: prev.addresses.filter(addr => addr._id !== addrId)
-                }));
-                setUserAddress(prev => prev.filter(addr => addr._id !== addrId));
-                localStorage.setItem("user-addr", JSON.stringify(userAddress));
-            }
+            setFormData(prev => ({
+                ...prev,
+                addresses: prev.addresses.filter(addr => addr._id !== addrId)
+            }));
         } else if(type === "add") {
             
         }
@@ -55,22 +40,12 @@ const UserInfo = () => {
             ...prev,  
             [e.target.name]: e.target.value
         }));
-        localStorage.setItem("user-payment", JSON.stringify({
-            ...JSON.parse(localStorage.getItem("user-payment") || "{}"),
-            [e.target.name]: e.target.value
-        }));
     };
 
-    const saveChange = async () => {
-        if (!userPayment.length) return;
-        
-        setUserPayment([{ 
-                ...userPayment[0], 
-                type: formData.type,
-                holder: formData.holder, 
-                detail: { expiryDate: formData.expiryDate }
-        }]);
-        const paymentUpdate= await fetch(`http://localhost:4000/payments/${userPayment[0]._id}`,{
+    const saveChange = async (paymentId) => {
+
+        console.log("here")
+        const paymentUpdate= await fetch(`http://localhost:4000/payments/${paymentId}`,{
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"
@@ -84,8 +59,19 @@ const UserInfo = () => {
             })
         });
 
-        if(paymentUpdate.ok) {
-            window.location.href= "/";
+        const token= localStorage.getItem("auth-token");
+        const addrUpdate = await fetch("http://localhost:4000/users/address", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "auth-token": token
+            },
+            body: JSON.stringify(selectedAddress)
+        });
+
+        if(paymentUpdate.ok && addrUpdate.ok) {
+            setNotification({message: "Save success!", status: true, show: true});
+            setTimeout(()=> {window.location.replace("/")}, 1000);
         }
 
     }
@@ -169,7 +155,7 @@ const UserInfo = () => {
             <div className="text-center mt-8">
                 <button 
                     className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
-                    onClick={()=>saveChange(formData)}
+                    onClick={()=>saveChange(userPayMethod._id)}
                 >
                     Save Changes
                 </button>
@@ -209,7 +195,16 @@ const UserInfo = () => {
                     </div>
                 </div>
             )}
+            {notification.show && (
+                <div className= "fixed top-5 right-5 z-50">
+                    <Notification
+                        message={notification.message}
+                        status={notification.status}
+                    />
+                </div>
+            )}
         </main>
+        
     );
 };
 

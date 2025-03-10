@@ -1,28 +1,29 @@
 import { useContext, useState } from "react";
 import { ShopContext } from "../../../Context/ShopContext";
+import { useUser } from "../../../Context/UserContext";
 import { useCheckout } from "../../../Context/CheckOutContext";
 import ModalDialog from "../../ModalDialog/ModalDialog";
 import Notification from "../../Notification/Notification";
 
 const OrderSummary = () => {
     const { all_product, cartItems, getTotalCartAmount, discounts } = useContext(ShopContext);
-    const { paymentData, shippingData, paymentMethod } = useCheckout();
+    const { paymentMethod } = useCheckout();
+    const {userInfo, userPayMethod} = useUser();
     const [selectedVoucher, setSelectedVoucher] = useState([]);
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [notification, setNotification] = useState({message: "", status: false, show: false});
 
     const formData = {
-        paymentMethod,
+        paymentMethod: paymentMethod,
         cardInfo: {
-            cardName: paymentData.cardName,
-            cardNumber: paymentData.cardNumber,
-            cardExpired: paymentData.cardExpired,
-            cardCvc: paymentData.cardCvc
+            cardName: userPayMethod.holder,
+            cardType: userPayMethod.type,
+            cardExpired: userPayMethod.detail.expiryDate
         },
         shipAddress: {
-            address: shippingData.address,
-            city: shippingData.city,
-            country: shippingData.country
+            street: userInfo.selectAddress.street,
+            city: userInfo.selectAddress.city,
+            country: userInfo.selectAddress.country
         }
     };
 
@@ -30,6 +31,7 @@ const OrderSummary = () => {
     const shippingPrice = 10;
     const tax = 0.05;
     const countTotal = () => {
+        if(total === 0) return 0;
         total = total + tax + shippingPrice; 
         selectedVoucher.forEach((discount) => {
             if(discount.type === "percentage") {
@@ -43,6 +45,9 @@ const OrderSummary = () => {
     };
 
     const handleCheckout = async () => {
+        if(total===0) {
+            return;
+        }
         try {
             const token = localStorage.getItem("auth-token");
             if(!token) {
@@ -64,7 +69,7 @@ const OrderSummary = () => {
             if (data.success) {
                 setNotification({message: "Payment successful !", status: true, show: true});
                 const emailFormData = {
-                    orderId: data._id,
+                    orderId: data.data._id,
                     totalPrice: total.toFixed(2),
                     address: formData.shipAddress.address + ", " + formData.shipAddress.city
                 }
@@ -78,8 +83,23 @@ const OrderSummary = () => {
                 })
                 const emailData = await emailResponse.json();
                 if(emailData.success) {
+                    try {
+                        await fetch(`http://localhost:4000/orders/${data.data._id}`, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "auth-token": token
+                            },
+                            body: JSON.stringify({status: "confirmed"})
+                        });
+                    } catch (error) {
+                        setNotification({message: "Can not set status!", status: false, show: true});
+                        setTimeout(() => setNotification({show: false}), 2000);
+                    }
+                    
                     setNotification({show: false});
                     setTimeout(()=> {window.location.replace("/")}, 2000);
+
                 } else {
                     setTimeout(() => setNotification({message: "Send email failed !", status: false, show: true}), 2000);
                 }

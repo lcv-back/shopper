@@ -1,13 +1,14 @@
-import { useCheckout } from "../../../Context/CheckOutContext";
+import { useCheckout } from '../../../Context/CheckOutContext';
+import { useUser } from "../../../Context/UserContext";
+
 const PaymentMethod = () => {
-    const { setPaymentData } = useCheckout();
-    const {paymentMethod, setPaymentMethod} = useCheckout();
+    const { paymentMethod, setPaymentMethod } = useCheckout();
+    const { userPayMethod } = useUser();
     const handleChange = (e) => {
         const { name, value } = e.target;
         if(name === "paymentMethod") setPaymentMethod(value);
-        setPaymentData((prev) => ({ ...prev, [name]: value }));
     };
-    const userPay= JSON.parse(localStorage.getItem("user-payment") || []);
+
     return (
         <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Payment Method</h2>
@@ -28,10 +29,11 @@ const PaymentMethod = () => {
                             <input
                                 name="cardHolder"
                                 className="w-full border rounded px-4 py-2"
-                                value={userPay?.[0]?.holder ||""}
+                                value={userPayMethod?.holder||""}
                                 onChange={handleChange}
                                 id="card-holder"
                                 type="text"
+                                readOnly
                             />
                         </div>
                         <div>
@@ -39,10 +41,11 @@ const PaymentMethod = () => {
                             <input
                                 name="cardType"
                                 className="w-full border rounded px-4 py-2"
-                                value={userPay?.[0]?.type ||""}
+                                value={userPayMethod?.type ||""}
                                 onChange={handleChange}
                                 id="card-type"
                                 type="text"
+                                readOnly
                             />
                         </div>
                         <div className="flex flex-col md:flex-row md:space-x-4">
@@ -51,10 +54,11 @@ const PaymentMethod = () => {
                                 <input
                                     name="cardExpired"
                                     className="w-full border rounded px-4 py-2"
-                                    value= {userPay?.[0]?.detail?.expiryDate ||""}
+                                    value= {userPayMethod?.detail?.expiryDate ||""}
                                     onChange={handleChange}
                                     id="card-expiry"
                                     type="text"
+                                    readOnly
                                 />
                             </div>
                         </div>

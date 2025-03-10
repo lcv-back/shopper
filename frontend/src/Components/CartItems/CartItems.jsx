@@ -7,6 +7,7 @@ import remove_icon from '../Assets/cart_cross_icon.png';
 const CartItems = () => {
     const {getTotalCartAmount, all_product, cartItems, removeFromCart} = useContext(ShopContext);
     const isAuth = localStorage.getItem("auth-token") ? true : false;
+    const total = getTotalCartAmount();
     return (
         <div className="cartitems">
             <div className="cartitems-format-main">
@@ -54,7 +55,7 @@ const CartItems = () => {
                         <hr />
                         <div className="cartitems-total-item">
                             <h3>Total</h3>
-                            <h3>${getTotalCartAmount()+ 10}</h3>
+                            <h3>${total===0 ? 0 : total + 10}</h3>
                         </div>
                     </div>
                     <button><Link to= {isAuth ? "/checkout" : "/login"}>PROCEED TO CHECKOUT</Link></button>
