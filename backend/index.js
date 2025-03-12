@@ -602,8 +602,7 @@ app.post('/address', fetchUser, async (req, res) => {
         userId: req.user.id,
         street: req.body.street,
         city: req.body.city,
-        country: req.body.country,
-        isSelected: req.body.isSelected
+        country: req.body.country
     });
 
     await newAddress.save();

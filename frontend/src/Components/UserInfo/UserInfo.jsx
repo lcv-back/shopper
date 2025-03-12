@@ -2,6 +2,7 @@ import { useState} from "react";
 import { useUser } from "../../Context/UserContext";
 import user_icon from "../Assets/user-regular.svg"; 
 import Notification from "../Notification/Notification";
+import ModalDialog from "../ModalDialog/ModalDialog";
 
 const UserInfo = () => {
     const  {userInfo, userAddrList, userPayMethod} = useUser();
@@ -15,26 +16,52 @@ const UserInfo = () => {
         expiryDate: userPayMethod?.detail?.expiryDate || "",
     });
 
-    const [selectedAddress, setSelectedAddress] = useState(userInfo?.selecteAddress||JSON.parse(localStorage.getItem("selected-addr")));
-    const [isModalOpen, setIsModalOpen] = useState(false); // Trạng thái mở/đóng modal
-    const [notification, setNotification] = useState({message: "", status: false, show: false});
+    const [selectedAddress, setSelectedAddress] = useState(userInfo?.selectAddress||JSON.parse(localStorage.getItem("selected-addr")));
+    const [isModalAddrListOpen, setIsModalAddrListOpen] = useState(false); // Trạng thái mở/đóng modal
+    const [isModalAddrOpen, setIsModalAddrOpen] = useState(false); //Trạng thái mở/đóng modal thêm addr
+    const [notification, setNotification] = useState({message: "", status: false, show: false}); //Trạng thái thông báobáo
+    const [addrDeleteList, setAddrDeleteList] = useState([]); //Trạng thái danh sách các addr cần xóa
+    const [addrAddList, setAddrAddList] = useState([]); //Trạng thái danh sách các addr cần thêm
 
-    // Xử lý chọn địa chỉ từ modal
+    // Xử lý thêm, sửa, xóa địa chỉ từ modal
     const handleAddressChange = async (type, addr) => {
         const addrId = addr._id;
+        const addrStreet = addr.street;
+        const addrCity = addr.city;
+        const addrCountry = addr.country;
+        
         if(type === "select"){
             localStorage.setItem("selected-addr", JSON.stringify(addr));
             setSelectedAddress(addr);
         } else if(type === "delete") {
             if(addrId===selectedAddress._id) return;
+            const addrDelete = {
+                ...addr
+            };
+            setAddrDeleteList((list)=>[...list, addrDelete]);
             setFormData(prev => ({
                 ...prev,
-                addresses: prev.addresses.filter(addr => addr._id !== addrId)
+                addresses: prev.addresses.filter(addr => 
+                    addr._id 
+                    ? addr._id !== addrId 
+                    : !(addr.street === addrStreet && addr.city === addrCity && addr.country === addrCountry)
+                )
             }));
         } else if(type === "add") {
-            
+            const addrAdd = {
+                street: addr.street,
+                city: addr.city,
+                country: addr.country
+            };
+            setAddrAddList((list) => [...list, addrAdd]);
+            setFormData(prev => ({
+                ...prev,
+                addresses: [...prev.addresses, addr]
+            }))
         }
     };
+
+    //Xử lý thay đổi thông tin payment
     const handlePaymentChange = (e) => {
         setFormData(prev => ({
             ...prev,  
@@ -42,45 +69,180 @@ const UserInfo = () => {
         }));
     };
 
-    const saveChange = async (paymentId) => {
+    const getAddrToUpdate = (initialAddr, curAddr, addrDeleteList, addrAddList) => {
+        // Tạo Set chứa ID của địa chỉ ban đầu
+        const initialAddrIds = new Set(initialAddr.map(addr => addr._id));
+    
+        // Tạo danh sách chứa các địa chỉ không có id (vì các địa chỉ được thêm trên UI không có _id)
+        const deletedAddrStrings = addrDeleteList.filter(addr => !addr._id);
+    
+        // Tạo danh sách địa chỉ cần xóa (chỉ xóa nếu ID có trong danh sách ban đầu)
+        const addrToDelete = addrDeleteList.filter(addr => initialAddrIds.has(addr._id));
+    
+        // Lọc danh sách địa chỉ cần thêm (không có _id và chưa bị xóa ngay sau khi thêm)
+        const addrToAdd = addrAddList.filter(addr => !deletedAddrStrings.some(deleted => 
+            deleted.street === addr.street && 
+            deleted.city === addr.city &&
+            deleted.country === addr.country
+        ));
 
-        console.log("here")
-        const paymentUpdate= await fetch(`http://localhost:4000/payments/${paymentId}`,{
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                type: formData.type,
-                holder: formData.holder,  
-                detail: {
-                    expiryDate: formData.expiryDate
-                }
-            })
-        });
-
-        const token= localStorage.getItem("auth-token");
-        const addrUpdate = await fetch("http://localhost:4000/users/address", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "auth-token": token
-            },
-            body: JSON.stringify(selectedAddress)
-        });
-
-        if(paymentUpdate.ok && addrUpdate.ok) {
-            setNotification({message: "Save success!", status: true, show: true});
-            setTimeout(()=> {window.location.replace("/")}, 1000);
+        // Nếu danh sách ban đầu không thay đổi, trả về danh sách rỗng
+        if (addrToAdd.length === 0 && addrToDelete.length === 0) {
+            return { addrToAdd: [] , addrToDelete: [] };
         }
+        return {addrToAdd, addrToDelete};
+    };
+    
 
-    }
+    const saveChange = async (paymentId) => {
+        try {
+            const token = localStorage.getItem("auth-token");
+    
+            // Cập nhật thông tin thanh toán
+            const paymentUpdate = await fetch(`http://localhost:4000/payments/${paymentId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: formData.type,
+                    holder: formData.holder,
+                    detail: { expiryDate: formData.expiryDate }
+                })
+            });
+    
+            // Cập nhật địa chỉ đã chọn
+            const addrUpdate = await fetch("http://localhost:4000/users/address", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "auth-token": token
+                },
+                body: JSON.stringify(selectedAddress)
+            });
+    
+            // Lấy danh sách cần thêm/xóa
+            const { addrToAdd, addrToDelete } = getAddrToUpdate(userAddrList, formData.addresses, addrDeleteList, addrAddList);
+            
+            // Cập nhật các địa chỉ đã thêm
+            if(addrToAdd.length > 0){
+                // Chờ thêm địa chỉ mới
+                await Promise.all(
+                    addrToAdd.map(async (addr) => {
+                        await fetch("http://localhost:4000/address", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "auth-token": token
+                            },
+                            body: JSON.stringify({
+                                street: addr.street,
+                                city: addr.city,
+                                country: addr.country
+                            })
+                        });
+                    })
+                );
+            }
+    
+            //Cập nhật các địa chỉ đã xóa
+            if(addrToDelete.length > 0){
+                // Chờ xóa địa chỉ cũ
+                await Promise.all(
+                    addrToDelete.map(async (addr) => {
+                        await fetch(`http://localhost:4000/address/${addr._id}`, {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" }
+                        });
+                    })
+                );
+            }
+
+            // Kiểm tra xem tất cả request đều thành công
+            if (paymentUpdate.ok && addrUpdate.ok) {
+                setNotification({ message: "Save success!", status: true, show: true });
+                setTimeout(() => window.location.replace("/"), 10000);
+            } else {
+                console.error("Failed to update payment or address");
+            }
+    
+        } catch (error) {
+            console.error("Update failed:", error);
+            setNotification({ message: "Update failed!", status: false, show: true });
+        }
+    };    
 
     // Mở modal
-    const openModal = () => setIsModalOpen(true);
+    const openModal = () => setIsModalAddrListOpen(true);
+    const openAddrModal = () => setIsModalAddrOpen(true);
     // Đóng modal
-    const closeModal = () => setIsModalOpen(false);
+    const closeModal = () => setIsModalAddrListOpen(false);
+    const closeAddrModal = () => setIsModalAddrOpen(false);
 
+    //Function để render body (dùng cho componet ModalDialog)
+    const renderModalBody = () => {
+        return (
+            <div className="flex flex-col gap-2">
+                {formData.addresses.map((addr, index) => (
+                    <label key={index} className="flex items-center gap-2 p-2 border rounded cursor-pointer mb-2">
+                        <input 
+                            type="radio"
+                            name="address"
+                            className="basis-1/6"
+                            value={addr._id} 
+                            checked={selectedAddress._id === addr._id} 
+                            onChange={() => handleAddressChange("select", addr)} 
+                        />
+                        <div className="basis-4/6">{addr.street}, {addr.city}</div>
+                        <button className="basis-1/6" onClick={() => handleAddressChange("delete", addr)}>
+                            <i className="far fa-trash-alt"></i>
+                        </button>
+                    </label>
+                ))}
+                <label className="flex items-center p-2 border rounded cursor-pointer">
+                    <div className="basis-2/5 ms-3"></div>
+                    <button className="h-11 basis-1/5 p-0 mx-6" onClick={() => openAddrModal()}><i className="fas fa-plus fa-sm"></i></button>
+                    <div className="basis-2/5 me-3"></div>
+                </label>
+            </div>
+        )
+    };
+
+    // Lấy dữ liệu từ form điền địa chỉ
+    const handleAddAddress = () => {
+        const form = document.querySelector("#addAddrForm");
+        const formAddrData = new FormData(form);
+        const newAddr = {
+            street: formAddrData.get("street").trim(),
+            city: formAddrData.get("city").trim(),
+            country: formAddrData.get("country").trim()
+        }
+        if (!newAddr.street || !newAddr.city || !newAddr.country) {
+            setNotification({ message: "Please fill all fields!", status: false, show: true });
+            setTimeout(()=>{setNotification({show: false})}, 1000);
+            return;
+        }
+        handleAddressChange("add", newAddr);
+    }
+
+    
+    const renderModalAddrBody = () => {
+        return (
+            <form className="flex flex-col gap-2" id="addAddrForm">
+                {["street", "city", "country"].map((field) => (
+                    <div className="mb-2">
+                        <label key={field} className="flex items-center gap-2 p-2 cursor-pointer">
+                            {field.toLocaleUpperCase()}
+                        </label>
+                        <input 
+                                type="text"
+                                name= {field}
+                                className="h-8 w-full border rounded focus:outline-gray-300"
+                        />
+                    </div>
+                ))}
+            </form>
+        );
+    };
+    
 
     return (
         <main className="container mx-auto p-4">
@@ -161,40 +323,23 @@ const UserInfo = () => {
                 </button>
             </div>
 
-            {/* Modal chọn địa chỉ */}
-            {isModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white p-6 rounded-lg w-96">
-                        <h3 className="text-xl font-bold mb-4">Choose address</h3>
-                        <div className="flex flex-col gap-2">
-                            {formData.addresses.map((addr, index) => (
-                                <label key={index} className="flex items-center gap-2 p-2 border rounded cursor-pointer">
-                                <input 
-                                    type="radio"
-                                    name="address"
-                                    className="basis-1/6"
-                                    value={addr._id} 
-                                    checked={selectedAddress._id === addr._id} 
-                                    onChange={() => handleAddressChange("select",addr)} 
-                                />
-                                <div className="basis-4/6">{addr.street}, {addr.city}</div>
-                                <button className="basis-1/6" onClick={()=>handleAddressChange("delete", addr)}>
-                                    <i className="far fa-trash-alt"></i>
-                                </button>
-                                </label>
-                            ))}
-                            <label className="flex items-center p-2 border rounded cursor-pointer">
-                                <div className="basis-2/5"></div>
-                                <button className="basis-1/5 p-0 mx-6"><i className="fas fa-plus fa-sm"></i></button>
-                                <div className="basis-2/5"></div>
-                            </label>
-                        </div>
-                        <div className="mt-4 flex justify-end gap-2">
-                            <button className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600" onClick={closeModal}>Confirm</button>
-                        </div>
-                    </div>
-                </div>
+            { isModalAddrListOpen && (
+                <ModalDialog
+                    onClose={()=>closeModal()}
+                    modalTitle= {"Address List"}
+                    renderBody= {() => renderModalBody()}
+                />
             )}
+
+            { isModalAddrOpen && (
+                <ModalDialog
+                    onClose= {() => closeAddrModal()}
+                    modalTitle= {"Add address"}
+                    renderBody={() => renderModalAddrBody()}
+                    func= {()=> handleAddAddress()}
+                />
+            )}
+
             {notification.show && (
                 <div className= "fixed top-5 right-5 z-50">
                     <Notification

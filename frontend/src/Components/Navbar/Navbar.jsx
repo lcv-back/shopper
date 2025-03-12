@@ -47,9 +47,7 @@ const Navbar = () => {
                 {localStorage.getItem('auth-token') ? 
                 <button onClick={() => {
                     localStorage.removeItem('auth-token');
-                    localStorage.removeItem("user-info");
-                    localStorage.removeItem("user-addr");
-                    localStorage.removeItem("user-payment");
+                    localStorage.removeItem("selected-addr");
                     window.location.replace('/');
                 }}>Logout
                 </button> : 
