@@ -11,7 +11,7 @@ const ShippingDetails = () => {
                 <div>
                     <label className="block text-gray-600 mb-2" htmlFor="shipping-address">Address</label>
                     <input
-                        name="address"
+                        name="street"
                         className="w-full border rounded px-4 py-2"
                         value= {userInfo.selectAddress?.street||""}
                         id="shipping-address"

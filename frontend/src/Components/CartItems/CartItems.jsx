@@ -2,11 +2,15 @@ import React, { useContext } from "react";
 import {Link} from "react-router";
 import './CartItems.css';
 import { ShopContext } from "../../Context/ShopContext";
+import { useUser } from "../../Context/UserContext";
 import remove_icon from '../Assets/cart_cross_icon.png';
 
 const CartItems = () => {
     const {getTotalCartAmount, all_product, cartItems, removeFromCart} = useContext(ShopContext);
     const isAuth = localStorage.getItem("auth-token") ? true : false;
+    const {userAddrList, userPayMethod} = useUser();
+    const isHaveAddr = userAddrList?.length > 0;
+    const isHavePay = userPayMethod && Object.keys(userPayMethod).length > 0;
     const total = getTotalCartAmount();
     return (
         <div className="cartitems">
@@ -58,7 +62,7 @@ const CartItems = () => {
                             <h3>${total===0 ? 0 : total + 10}</h3>
                         </div>
                     </div>
-                    <button><Link to= {isAuth ? "/checkout" : "/login"}>PROCEED TO CHECKOUT</Link></button>
+                    <button><Link to= {isAuth ? ((!isHaveAddr || !isHavePay) ? "/getinfo" : "/checkout") : "/login"}>PROCEED TO CHECKOUT</Link></button>
                 </div>
                 <div className="cartitems-promocode">
                     <p>If you have a promo code, Enter it here</p>

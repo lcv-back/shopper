@@ -94,10 +94,11 @@ const UserInfo = () => {
     };
     
 
+    //Lưu thông tin 
     const saveChange = async (paymentId) => {
         try {
             const token = localStorage.getItem("auth-token");
-    
+            
             // Cập nhật thông tin thanh toán
             const paymentUpdate = await fetch(`http://localhost:4000/payments/${paymentId}`, {
                 method: "PUT",
@@ -156,8 +157,23 @@ const UserInfo = () => {
                 );
             }
 
+            const updateUser = await fetch("http://localhost:4000/users", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "auth-token": token
+                },
+                body: JSON.stringify({
+                    selectAddress: {
+                        street: selectedAddress.street,
+                        city: selectedAddress.city,
+                        country: selectedAddress.country
+                    }
+                })
+            })
+
             // Kiểm tra xem tất cả request đều thành công
-            if (paymentUpdate.ok && addrUpdate.ok) {
+            if (paymentUpdate.ok && addrUpdate.ok && updateUser.ok) {
                 setNotification({ message: "Save success!", status: true, show: true });
                 setTimeout(() => window.location.replace("/"), 10000);
             } else {
@@ -176,7 +192,6 @@ const UserInfo = () => {
     // Đóng modal
     const closeModal = () => setIsModalAddrListOpen(false);
     const closeAddrModal = () => setIsModalAddrOpen(false);
-
     //Function để render body (dùng cho componet ModalDialog)
     const renderModalBody = () => {
         return (
@@ -188,7 +203,7 @@ const UserInfo = () => {
                             name="address"
                             className="basis-1/6"
                             value={addr._id} 
-                            checked={selectedAddress._id === addr._id} 
+                            checked={selectedAddress ? selectedAddress._id === addr._id : true} 
                             onChange={() => handleAddressChange("select", addr)} 
                         />
                         <div className="basis-4/6">{addr.street}, {addr.city}</div>
@@ -276,7 +291,7 @@ const UserInfo = () => {
                             <input 
                                 className="basis-5/6 w-full p-2 border rounded bg-gray-100"
                                 type="text"
-                                value={selectedAddress.street + ", " + selectedAddress.city}
+                                value={(selectedAddress?.street || " ") + ", " + (selectedAddress?.city|| " ")}
                                 readOnly
                             />
                             <button 

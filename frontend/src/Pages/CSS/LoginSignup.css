@@ -25,13 +25,12 @@ h1 {
     font-size: 28px;
     text-align: center;
     color: #333;
-    margin-bottom: 25px;
 }
 
 .loginsignup-fields input {
     width: 100%;
     padding: 12px;
-    margin-bottom: 20px;
+    margin-top: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
@@ -41,6 +40,7 @@ h1 {
 button {
     width: 100%;
     padding: 14px;
+    margin-top: 25px;
     background-color: #FF6347;
     color: white;
     border: none;

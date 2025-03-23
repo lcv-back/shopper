@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState} from 'react';
 
 export const ShopContext = createContext(null);
 
@@ -25,10 +25,18 @@ const ShopContextProvider = (props) => {
                     fetch('http://localhost:4000/allproducts').then(res => res.json()),
                     fetch('http://localhost:4000/discounts').then(res => res.json()),
                 ]);
-                setAll_Product(productsRes);
-                setDiscounts(discountsRes.data);
-                setCartItems(getDefaultCart(productsRes));
 
+                const eventDiscount = discountsRes.data.filter((discount) => (discount.scope === "all"))
+                                    .sort((a, b) => (new Date(b.createAt) - new Date(a.createAt)))[0];
+                const discountProduct = productsRes.map((product) => ({
+                    ...product,
+                    new_price: product.old_price - (eventDiscount.type === "fixed" 
+                        ? eventDiscount.value 
+                        : product.old_price * eventDiscount.value)
+                }))
+                setAll_Product(discountProduct);
+                setDiscounts(discountsRes);
+                setCartItems(getDefaultCart(discountProduct));
                 if (localStorage.getItem('auth-token')) {
                     const cartRes = await fetch('http://localhost:4000/getcart', {
                         method: 'POST',
@@ -110,6 +118,8 @@ const ShopContextProvider = (props) => {
         }
         return totalItem
     }
+    
+    
     const contextValue = 
         {getTotalCartItems, getTotalCartAmount, all_product, cartItems, addToCart, 
             removeFromCart, discounts};

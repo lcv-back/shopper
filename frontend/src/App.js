@@ -7,6 +7,7 @@ import Product from './Pages/Product';
 import Cart from './Pages/Cart';
 import LoginSignup from './Pages/LoginSignup';
 import CheckOut from './Pages/CheckOut';
+import GetUserInfo from './Pages/GetUserInfo';
 import MyInfo from './Components/UserInfo/UserInfo';
 import Footer from './Components/Footer/Footer';
 import men_banner from './Components/Assets/banner_mens.png';
@@ -30,6 +31,7 @@ function App() {
           <Route path = "/login" element = {<LoginSignup/>}/>
           <Route path = "/checkout" element = {<CheckOut/>}/>
           <Route path = "/myinfo" element = {<MyInfo/>}/>
+          <Route path = "/getinfo" element = {<GetUserInfo/>}/>
         </Routes> 
       <Footer/>
       </BrowserRouter>

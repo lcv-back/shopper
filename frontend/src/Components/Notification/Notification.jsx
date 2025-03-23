@@ -1,6 +1,6 @@
-const Notification = ({onClose, message, status}) => {
+const Notification = ({message, status}) => {
     return (
-        <div className="bg-white shadow-lg rounded-lg p-3 w-auto">
+        <div className="fixed top-5 right-5 bg-white shadow-lg rounded-lg p-3 w-auto notification">
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
                     <div className="flex-shrink-0">

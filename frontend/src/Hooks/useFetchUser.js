@@ -33,7 +33,7 @@ const useFetchUser= () => {
                         "auth-token": token
                     }
                 }).then(res => res.json());
-                setUserAddrList(res.data);
+                setUserAddrList(res.data);                    
             } else if(type === "user-pay-method") {
                 res = await fetch("http://localhost:4000/payments", {
                     method: "GET",

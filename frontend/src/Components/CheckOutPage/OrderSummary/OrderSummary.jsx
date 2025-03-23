@@ -16,14 +16,14 @@ const OrderSummary = () => {
     const formData = {
         paymentMethod: paymentMethod,
         cardInfo: {
-            cardName: userPayMethod.holder,
-            cardType: userPayMethod.type,
-            cardExpired: userPayMethod.detail.expiryDate
+            cardName: userPayMethod?.holder||"",
+            cardType: userPayMethod?.type||"",
+            cardExpired: userPayMethod?.detail?.expiryDate||""
         },
         shipAddress: {
-            street: userInfo.selectAddress.street,
-            city: userInfo.selectAddress.city,
-            country: userInfo.selectAddress.country
+            street: userInfo.selectAddress?.street,
+            city: userInfo.selectAddress?.city,
+            country: userInfo.selectAddress?.country
         }
     };
 
@@ -71,7 +71,7 @@ const OrderSummary = () => {
                 const emailFormData = {
                     orderId: data.data._id,
                     totalPrice: total.toFixed(2),
-                    address: formData.shipAddress.address + ", " + formData.shipAddress.city
+                    address: formData.shipAddress.street + ", " + formData.shipAddress.city
                 }
                 const emailResponse = await fetch('http://localhost:4000/sendmail', {
                     method: 'POST',

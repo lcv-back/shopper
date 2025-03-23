@@ -6,6 +6,7 @@ import guest_icon from '../Assets/user-solid.svg'
 import user_icon from '../Assets/user-regular.svg'
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../../Context/ShopContext';
+import { useUser } from '../../Context/UserContext';
 import  nav_dropdown from '../Assets/nav_dropdown.png';
 
 const Navbar = () => {
@@ -13,6 +14,11 @@ const Navbar = () => {
     const [menu, setMenu] = useState("shop")
 
     const {getTotalCartItems} = useContext(ShopContext)
+
+    const { userAddrList, userPayMethod } = useUser();
+    
+    const isHaveAddr = userAddrList?.length > 0;
+    const isHavePay = userPayMethod && Object.keys(userPayMethod).length > 0;
 
     const menuRef = useRef()
 
@@ -41,7 +47,7 @@ const Navbar = () => {
 
                 <div className="nav-info">
                 {localStorage.getItem('auth-token') ?
-                    <Link to= '/myinfo'><img src={user_icon} alt=''/></Link> :
+                    <Link to= {(!isHaveAddr || !isHavePay) ? '/getinfo' : '/myinfo'}><img src={user_icon} alt=''/></Link> :
                     <Link to= '/login'><img src={guest_icon} alt=''/></Link>}
                 </div>
                 {localStorage.getItem('auth-token') ? 
