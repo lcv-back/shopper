@@ -9,6 +9,8 @@ const ProductDisplay = (props) => {
 
     const {addToCart} = useContext(ShopContext)
 
+    console.log(product); 
+
     return (
         <div className="productdisplay">
             <div className="productdisplay-left">
@@ -48,11 +50,11 @@ const ProductDisplay = (props) => {
                 <div className="productdisplay-right-size">
                     <h1>Select Size</h1>
                     <div className="productdisplay-right-sizes">
-                        <div>S</div>
-                        <div>M</div>
-                        <div>L</div>
-                        <div>XL</div>
-                        <div>XXL</div>
+                        <div className={product.variants[0].stock === 0 ? "not-available" : ""}>S</div>
+                        <div className={product.variants[1].stock === 0 ? "not-available" : ""}>M</div>
+                        <div className={product.variants[2].stock === 0 ? "not-available" : ""}>L</div>
+                        <div className={product.variants[3].stock === 0 ? "not-available" : ""}>XL</div>
+                        <div className={product.variants[4].stock === 0 ? "not-available" : ""}>XXL</div>
                     </div>
                 </div>
                 <button onClick={() => {addToCart(product.id)}}>ADD TO CART</button>

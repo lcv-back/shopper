@@ -82,6 +82,15 @@
     cursor: pointer;
 }
 
+.productdisplay-right-sizes .not-available{
+    padding: 18px 24px;
+    background: #fbfbfb;
+    border: 1px solid #ebebeb;
+    border-radius: 3px;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .productdisplay-right button {
     padding: 20px 40px;
     width: 200px;

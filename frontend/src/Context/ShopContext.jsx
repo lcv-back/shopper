@@ -35,7 +35,7 @@ const ShopContextProvider = (props) => {
                         : product.old_price * eventDiscount.value)
                 }))
                 setAll_Product(discountProduct);
-                setDiscounts(discountsRes);
+                setDiscounts(discountsRes.data);
                 setCartItems(getDefaultCart(discountProduct));
                 if (localStorage.getItem('auth-token')) {
                     const cartRes = await fetch('http://localhost:4000/getcart', {

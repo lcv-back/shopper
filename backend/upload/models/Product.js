@@ -29,10 +29,12 @@ const ProductSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    available: {
-        type: Boolean,
-        default: true
-    }
+    variants: [
+        {
+            size: String,
+            stock: Number
+        }
+    ]
 });
 
 const Product = mongoose.model("product", ProductSchema);
